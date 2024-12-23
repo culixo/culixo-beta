@@ -1,6 +1,5 @@
 // src/app/recipes/[id]/page.tsx
-import React from 'react';
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import RecipeView from '@/components/recipe-view/RecipeView';
 import SearchBar from '@/components/recipe-view/SearchBar';
 
@@ -27,17 +26,9 @@ async function getRecipe(id: string) {
   }
 }
 
-// Type for page parameters
-type PageParams = {
-  id: string;
-};
-
-// Metadata generation function
 export async function generateMetadata({ 
   params 
-}: { 
-  params: PageParams 
-}): Promise<Metadata> {
+}: { params: { id: string } }): Promise<Metadata> {
   const recipe = await getRecipe(params.id);
   
   return {
@@ -46,12 +37,10 @@ export async function generateMetadata({
   };
 }
 
-
-// @ts-ignore
 export default async function RecipePage({ 
   params 
 }: { 
-  params: PageParams 
+  params: { id: string } 
 }) {
   const recipeData = await getRecipe(params.id);
 
