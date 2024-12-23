@@ -27,17 +27,17 @@ async function getRecipe(id: string) {
   }
 }
 
-// Define the type for the page props
-type RecipePageProps = {
-  params: { 
-    id: string 
-  };
+// Type for page parameters
+type PageParams = {
+  id: string;
 };
 
 // Metadata generation function
 export async function generateMetadata({ 
   params 
-}: RecipePageProps): Promise<Metadata> {
+}: { 
+  params: PageParams 
+}): Promise<Metadata> {
   const recipe = await getRecipe(params.id);
   
   return {
@@ -46,7 +46,11 @@ export async function generateMetadata({
   };
 }
 
-export default async function RecipePage({ params }: RecipePageProps) {
+export default async function RecipePage({ 
+  params 
+}: { 
+  params: PageParams 
+}) {
   const recipeData = await getRecipe(params.id);
 
   if (!recipeData) {
