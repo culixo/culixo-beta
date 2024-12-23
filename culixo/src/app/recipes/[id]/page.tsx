@@ -1,5 +1,6 @@
 // src/app/recipes/[id]/page.tsx
 import React from 'react';
+import { Metadata } from 'next';
 import RecipeView from '@/components/recipe-view/RecipeView';
 import SearchBar from '@/components/recipe-view/SearchBar';
 
@@ -26,42 +27,52 @@ async function getRecipe(id: string) {
   }
 }
 
-export default async function RecipePage({
-    params,
-  }: {
-    params: { id: string };
-  }) {
-    const recipeData = await getRecipe(params.id);
+// Define the type for the page props
+type RecipePageProps = {
+  params: { 
+    id: string 
+  };
+};
 
-    if (!recipeData) {
-      return (
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <p className="text-lg text-muted-foreground">Recipe not found</p>
-        </div>
-      );
-    }
+// Metadata generation function
+export async function generateMetadata({ 
+  params 
+}: RecipePageProps): Promise<Metadata> {
+  const recipe = await getRecipe(params.id);
+  
+  return {
+    title: recipe?.data?.title ? `${recipe.data.title} | Recipe` : 'Recipe',
+    description: recipe?.data?.description || 'Recipe details'
+  };
+}
 
-    // const currentUrl = process.env.NEXT_PUBLIC_BASE_URL
-    //   ? `${process.env.NEXT_PUBLIC_BASE_URL}/recipes/${params.id}`
-    //   : `/recipes/${params.id}`;
+export default async function RecipePage({ params }: RecipePageProps) {
+  const recipeData = await getRecipe(params.id);
 
+  if (!recipeData) {
     return (
-      <div className="flex flex-col min-h-screen">
-        {/* Top Spacing for Navbar */}
-        <div className="h-16" />{" "}
-        {/* Adjust height based on your navbar height */}
-        {/* Search Bar Section */}
-        <div className="relative w-full py-4 px-4">
-          <SearchBar className="z-10" />
-        </div>
-        {/* Main Content */}
-        <div className="flex-1">
-          <RecipeView
-            recipe={recipeData.data}
-            author={recipeData.data.author}
-            //url={currentUrl}
-          />
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-lg text-muted-foreground">Recipe not found</p>
       </div>
     );
   }
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      {/* Top Spacing for Navbar */}
+      <div className="h-16" />{" "}
+      {/* Adjust height based on your navbar height */}
+      {/* Search Bar Section */}
+      <div className="relative w-full py-4 px-4">
+        <SearchBar className="z-10" />
+      </div>
+      {/* Main Content */}
+      <div className="flex-1">
+        <RecipeView
+          recipe={recipeData.data}
+          author={recipeData.data.author}
+        />
+      </div>
+    </div>
+  );
+}
