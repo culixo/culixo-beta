@@ -26,15 +26,15 @@ async function getRecipe(id: string) {
   }
 }
 
-interface PageProps {
+type Props = {
   params: {
     id: string;
   };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
+  searchParams: { [key: string]: string | string[] | undefined };
+};
 
-export default async function RecipePage({ params }: PageProps) {
-  const recipeData = await getRecipe(params.id);
+export default async function RecipePage(props: Props) {
+  const recipeData = await getRecipe(props.params.id);
 
   if (!recipeData) {
     return (
