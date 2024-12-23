@@ -1,5 +1,5 @@
 // src/app/recipes/[id]/page.tsx
-import type { Metadata } from 'next';
+import React from 'react';
 import RecipeView from '@/components/recipe-view/RecipeView';
 import SearchBar from '@/components/recipe-view/SearchBar';
 
@@ -26,22 +26,14 @@ async function getRecipe(id: string) {
   }
 }
 
-export async function generateMetadata({ 
-  params 
-}: { params: { id: string } }): Promise<Metadata> {
-  const recipe = await getRecipe(params.id);
-  
-  return {
-    title: recipe?.data?.title ? `${recipe.data.title} | Recipe` : 'Recipe',
-    description: recipe?.data?.description || 'Recipe details'
+interface PageProps {
+  params: {
+    id: string;
   };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export default async function RecipePage({ 
-  params 
-}: { 
-  params: { id: string } 
-}) {
+export default async function RecipePage({ params }: PageProps) {
   const recipeData = await getRecipe(params.id);
 
   if (!recipeData) {
@@ -55,8 +47,7 @@ export default async function RecipePage({
   return (
     <div className="flex flex-col min-h-screen">
       {/* Top Spacing for Navbar */}
-      <div className="h-16" />{" "}
-      {/* Adjust height based on your navbar height */}
+      <div className="h-16" /> {/* Adjust height based on your navbar height */}
       {/* Search Bar Section */}
       <div className="relative w-full py-4 px-4">
         <SearchBar className="z-10" />
@@ -66,6 +57,7 @@ export default async function RecipePage({
         <RecipeView
           recipe={recipeData.data}
           author={recipeData.data.author}
+          //url={currentUrl}
         />
       </div>
     </div>
