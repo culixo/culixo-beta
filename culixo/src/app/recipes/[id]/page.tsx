@@ -46,6 +46,8 @@ export async function generateMetadata({
   };
 }
 
+
+// @ts-ignore
 export default async function RecipePage({ 
   params 
 }: { 
