@@ -25,17 +25,13 @@ async function getRecipe(id: string) {
   }
 }
 
-// Define correct page params type for Next.js App Router
-type PageParams = {
-  id: string;
-};
+interface GenerateMetadataProps {
+  params: { id: string }
+}
 
-type Props = {
-  params: PageParams;
-};
-
-export default async function RecipePage({ params }: Props) {
-  const recipeData = await getRecipe(params.id);
+// Using specific Next.js page props pattern
+export default async function RecipePage(props: GenerateMetadataProps) {
+  const recipeData = await getRecipe(props.params.id);
 
   if (!recipeData) {
     return (
