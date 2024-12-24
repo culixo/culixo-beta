@@ -1,7 +1,7 @@
-// src/app/recipes/[id]/page.tsx
 import React from 'react';
 import RecipeView from '@/components/recipe-view/RecipeView';
 import SearchBar from '@/components/recipe-view/SearchBar';
+import type { Recipe } from '@/types/recipe';
 
 async function getRecipe(id: string) {
   try {
@@ -26,15 +26,18 @@ async function getRecipe(id: string) {
   }
 }
 
-type Props = {
-  params: {
-    id: string;
-  };
-  searchParams: { [key: string]: string | string[] | undefined };
+// Define correct page params type for Next.js App Router
+type PageParams = {
+  id: string;
 };
 
-export default async function RecipePage(props: Props) {
-  const recipeData = await getRecipe(props.params.id);
+type Props = {
+  params: PageParams;
+  searchParams: Record<string, string | string[] | undefined>;
+};
+
+export default async function RecipePage({ params, searchParams }: Props) {
+  const recipeData = await getRecipe(params.id);
 
   if (!recipeData) {
     return (
@@ -47,7 +50,7 @@ export default async function RecipePage(props: Props) {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Top Spacing for Navbar */}
-      <div className="h-16" /> {/* Adjust height based on your navbar height */}
+      <div className="h-16" />
       {/* Search Bar Section */}
       <div className="relative w-full py-4 px-4">
         <SearchBar className="z-10" />
@@ -57,7 +60,6 @@ export default async function RecipePage(props: Props) {
         <RecipeView
           recipe={recipeData.data}
           author={recipeData.data.author}
-          //url={currentUrl}
         />
       </div>
     </div>
