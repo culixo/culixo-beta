@@ -1,7 +1,6 @@
 import React from 'react';
 import RecipeView from '@/components/recipe-view/RecipeView';
 import SearchBar from '@/components/recipe-view/SearchBar';
-import type { Recipe } from '@/types/recipe';
 
 async function getRecipe(id: string) {
   try {
@@ -33,10 +32,9 @@ type PageParams = {
 
 type Props = {
   params: PageParams;
-  searchParams: Record<string, string | string[] | undefined>;
 };
 
-export default async function RecipePage({ params, searchParams }: Props) {
+export default async function RecipePage({ params }: Props) {
   const recipeData = await getRecipe(params.id);
 
   if (!recipeData) {
