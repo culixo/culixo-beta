@@ -54,6 +54,7 @@
     "zustand": "^5.0.1"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.9.2",
     "@shadcn/ui": "^0.0.4",
     "@types/fs-extra": "^11.0.4",
     "@types/js-cookie": "^3.0.6",
