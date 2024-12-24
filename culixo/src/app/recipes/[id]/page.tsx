@@ -1,4 +1,5 @@
 import React from 'react';
+import { Metadata } from 'next';
 import RecipeView from '@/components/recipe-view/RecipeView';
 import SearchBar from '@/components/recipe-view/SearchBar';
 
@@ -25,12 +26,15 @@ async function getRecipe(id: string) {
   }
 }
 
-// Simplify to just the basic types Next.js expects
-type Props = {
-  params: { id: string }
+interface PageProps {
+  id: string;
 }
 
-export default async function RecipePage({ params }: Props) {
+export default async function RecipePage({
+  params,
+}: {
+  params: PageProps;
+}) {
   const recipeData = await getRecipe(params.id);
 
   if (!recipeData) {
@@ -43,13 +47,10 @@ export default async function RecipePage({ params }: Props) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Top Spacing for Navbar */}
       <div className="h-16" />
-      {/* Search Bar Section */}
       <div className="relative w-full py-4 px-4">
         <SearchBar className="z-10" />
       </div>
-      {/* Main Content */}
       <div className="flex-1">
         <RecipeView
           recipe={recipeData.data}
@@ -59,3 +60,9 @@ export default async function RecipePage({ params }: Props) {
     </div>
   );
 }
+
+// Add metadata
+export const metadata: Metadata = {
+  title: 'Recipe Details',
+  description: 'View recipe details',
+};
