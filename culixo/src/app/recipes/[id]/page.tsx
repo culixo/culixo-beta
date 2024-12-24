@@ -25,12 +25,20 @@ async function getRecipe(id: string) {
   }
 }
 
-// Remove type annotations completely and let Next.js infer them
-export default async function RecipePage({
-  params,
-}: {
-  params: any;
-}) {
+// Using more specific types
+type RecipePageParams = {
+  params: {
+    id: string;
+  };
+  searchParams?: Record<string, string | string[] | undefined>;
+} & AsyncPageProps;
+
+// Add this interface to handle the async nature of Next.js pages
+interface AsyncPageProps {
+  Promise?: unknown;
+}
+
+export default async function RecipePage({ params }: RecipePageParams) {
   const recipeData = await getRecipe(params.id);
 
   if (!recipeData) {
