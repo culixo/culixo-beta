@@ -9,15 +9,9 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp']
   },
   // Add these configurations
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   experimental: {
-    missingSuspenseWithCSRBailout: true,
+    missingSuspenseWithCSRBailout: true // This should help bypass the useSearchParams error
   }
 };
 
-export default nextConfig;
+module.exports = nextConfig;
