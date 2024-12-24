@@ -25,13 +25,13 @@ async function getRecipe(id: string) {
   }
 }
 
-interface GenerateMetadataProps {
-  params: { id: string }
-}
-
-// Using specific Next.js page props pattern
-export default async function RecipePage(props: GenerateMetadataProps) {
-  const recipeData = await getRecipe(props.params.id);
+// Remove type annotations completely and let Next.js infer them
+export default async function RecipePage({
+  params,
+}: {
+  params: any;
+}) {
+  const recipeData = await getRecipe(params.id);
 
   if (!recipeData) {
     return (
