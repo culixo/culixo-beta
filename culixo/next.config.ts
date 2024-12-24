@@ -7,11 +7,8 @@ const nextConfig: NextConfig = {
       'culixo-recipe-images.s3.us-east-2.amazonaws.com', // Your S3 bucket domain
       'localhost'
     ],
+    // Optionally, you can also specify image formats you want to optimize
     formats: ['image/avif', 'image/webp']
-  },
-  typescript: {
-    // Dangerously allow production builds to successfully complete even with type errors
-    ignoreBuildErrors: true,
   }
 };
 
