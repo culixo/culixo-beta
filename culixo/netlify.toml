@@ -1,6 +1,6 @@
 [build]
   base = "culixo"
-  command = "CI=false npm run build"  # Added CI=false to bypass some warnings
+  command = "NEXT_TELEMETRY_DISABLED=1 npm run build"
   publish = ".next"
 
 [[plugins]]
@@ -10,7 +10,6 @@
   NEXT_USE_NETLIFY_EDGE = "true"
   NODE_VERSION = "18"
   NEXT_TELEMETRY_DISABLED = "1"
-  CI = "false"  # Added this to bypass some warnings
 
 [functions]
   directory = "netlify/functions"

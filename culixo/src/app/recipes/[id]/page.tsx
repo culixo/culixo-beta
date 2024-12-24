@@ -1,5 +1,4 @@
 import React from 'react';
-import { Metadata } from 'next';
 import RecipeView from '@/components/recipe-view/RecipeView';
 import SearchBar from '@/components/recipe-view/SearchBar';
 
@@ -26,15 +25,8 @@ async function getRecipe(id: string) {
   }
 }
 
-interface PageProps {
-  id: string;
-}
-
-export default async function RecipePage({
-  params,
-}: {
-  params: PageProps;
-}) {
+// Remove type definitions and let Next.js handle them
+export default async function RecipePage({ params }: { params: { id: string } }) {
   const recipeData = await getRecipe(params.id);
 
   if (!recipeData) {
@@ -60,9 +52,3 @@ export default async function RecipePage({
     </div>
   );
 }
-
-// Add metadata
-export const metadata: Metadata = {
-  title: 'Recipe Details',
-  description: 'View recipe details',
-};
