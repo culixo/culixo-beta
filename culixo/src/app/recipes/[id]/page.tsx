@@ -25,20 +25,12 @@ async function getRecipe(id: string) {
   }
 }
 
-// Using more specific types
-type RecipePageParams = {
-  params: {
-    id: string;
-  };
-  searchParams?: Record<string, string | string[] | undefined>;
-} & AsyncPageProps;
-
-// Add this interface to handle the async nature of Next.js pages
-interface AsyncPageProps {
-  Promise?: unknown;
+// Simplify to just the basic types Next.js expects
+type Props = {
+  params: { id: string }
 }
 
-export default async function RecipePage({ params }: RecipePageParams) {
+export default async function RecipePage({ params }: Props) {
   const recipeData = await getRecipe(params.id);
 
   if (!recipeData) {
