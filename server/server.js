@@ -9,24 +9,42 @@ const nutritionRoutes = require('./routes/nutritionRoutes');
 
 const app = express();
 
-// Middleware for detailed logging
-app.use((req, res, next) => {
-    console.log('Incoming request:', {
-        method: req.method,
-        path: req.path,
-        url: req.url,
-        headers: req.headers
-    });
-    next();
-});
+// Environment-specific variables
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const allowedOrigins = [
+    'https://www.culixo.com',              // Production
+    'http://localhost:3000',               // Local development
+    process.env.FRONTEND_URL               // Flexible override
+].filter(Boolean); // Remove any undefined values
 
-// Middleware
+// Middleware for detailed logging (only in development)
+if (isDevelopment) {
+    app.use((req, res, next) => {
+        console.log('Incoming request:', {
+            method: req.method,
+            path: req.path,
+            url: req.url,
+            headers: req.headers
+        });
+        next();
+    });
+}
+
+// Enhanced CORS configuration
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
-  }));
+}));
+
 app.use(express.json());
 
 // Routes
@@ -34,11 +52,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/drafts', recipeDraftRoutes);
 app.use('/api/nutrition', nutritionRoutes);
-// app.use('/recipes', recipeRoutes);
 
 // Catch unmatched routes
 app.use((req, res) => {
-    console.log('No route matched:', req.method, req.url);
+    if (isDevelopment) {
+        console.log('No route matched:', req.method, req.url);
+    }
     res.status(404).json({
         success: false,
         message: `Cannot ${req.method} ${req.url}`
@@ -47,5 +66,5 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
