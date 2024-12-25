@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import type { DraftResponseData } from "@/types/post-recipe/recipe";
@@ -291,6 +291,10 @@ const RecipeView = ({ recipe, author }: RecipeViewProps) => {
                                     </div>
                                   </DialogTrigger>
                                   <DialogContent className="max-w-3xl">
+                                    <DialogTitle className="sr-only">
+                                      Step {step.stepNumber} Photo{" "}
+                                      {imgIndex + 1}
+                                    </DialogTitle>
                                     <Image
                                       src={url}
                                       alt={`Step ${step.stepNumber} photo ${
@@ -348,6 +352,9 @@ const RecipeView = ({ recipe, author }: RecipeViewProps) => {
                                 </div>
                               </DialogTrigger>
                               <DialogContent className="max-w-3xl">
+                                <DialogTitle className="sr-only">
+                                  Recipe Photo {index + 1}
+                                </DialogTitle>
                                 <Image
                                   src={image}
                                   alt={`Recipe image ${index + 1}`}
