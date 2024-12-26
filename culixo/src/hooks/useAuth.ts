@@ -27,15 +27,19 @@ export const useAuth = create<AuthState>((set, get) => ({
   token: undefined,
   setAuth: (user, token) => {
     if (token) {
-      // Set token in cookie for middleware
-      document.cookie = `token=${token}; path=/; max-age=${60 * 60 * 24}`; // 24 hours
-      
-      // Store token based on storage preference
-      if (localStorage.getItem('user')) {
-        localStorage.setItem('token', token);
-      } else {
-        sessionStorage.setItem('token', token);
-      }
+        const expiryTime = 24 * 60 * 60; // 24 hours in seconds
+        
+        // Set token in cookie for middleware
+        document.cookie = `token=${token}; path=/; max-age=${expiryTime}`; 
+        
+        // Store token based on storage preference
+        if (localStorage.getItem('user')) {
+            localStorage.setItem('token', token);
+            localStorage.setItem('tokenExpiry', String(Date.now() + expiryTime * 1000));
+        } else {
+            sessionStorage.setItem('token', token);
+            sessionStorage.setItem('tokenExpiry', String(Date.now() + expiryTime * 1000));
+        }
     }
     set({ isAuthenticated: !!user, user, token });
   },
@@ -43,7 +47,13 @@ export const useAuth = create<AuthState>((set, get) => ({
     const state = get();
     if (state.token) return state.token;
     
-    // If token not in state, check storage
+    // Check token expiry
+    const expiry = localStorage.getItem('tokenExpiry') || sessionStorage.getItem('tokenExpiry');
+    if (expiry && Date.now() > Number(expiry)) {
+        get().logout();
+        return undefined;
+    }
+    
     return localStorage.getItem('token') || sessionStorage.getItem('token') || undefined;
   },
   logout: () => {
@@ -82,6 +92,7 @@ export const api = {
 
   request: async (endpoint: string, options: RequestInit = {}) => {
     const headers = api.getAuthHeaders();
+    const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
     
     const config: RequestInit = {
       ...options,
@@ -92,7 +103,7 @@ export const api = {
     };
 
     try {
-      const response = await fetch(`http://localhost:5000/api${endpoint}`, config);
+      const response = await fetch(`${baseURL}${endpoint}`, config);
       
       if (response.status === 401) {
         useAuth.getState().logout();
