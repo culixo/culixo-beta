@@ -48,7 +48,7 @@ export const HeroSection = ({ theme }: HeroSectionProps) => {
                 theme === "dark" ? "text-zinc-300" : "text-zinc-600"
               )}
             >
-              Explore Hi There recipes from talented home chefs and culinary experts ready
+              Explore recipes from talented home chefs and culinary experts ready
               to transform your kitchen experience
             </motion.p>
 
