@@ -1,3 +1,4 @@
+// src/app/(auth)/signup/page.tsx
 import { Suspense } from 'react';
 import { SignupForm } from "@/components/auth/SignupForm";
 import { AuthLeftSection } from "@/components/auth/AuthLeftSection";

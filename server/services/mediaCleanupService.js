@@ -70,6 +70,20 @@ const mediaCleanupService = {
       console.error('Error moving media to permanent storage:', error);
       throw new Error('Failed to move media files to permanent storage');
     }
+  },
+
+  cleanupProfilePicture: async (oldAvatarUrl) => {
+    try {
+      if (oldAvatarUrl) {
+        const oldKey = oldAvatarUrl.split('.com/')[1];
+        if (oldKey) {
+          await s3Service.deleteObject(oldKey);
+        }
+      }
+    } catch (error) {
+      console.error('Error cleaning up old profile picture:', error);
+      throw error;
+    }
   }
 };
 

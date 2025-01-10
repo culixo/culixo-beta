@@ -4,6 +4,7 @@ const nextConfig = {
   images: {
     domains: [
       'culixo-recipe-images.s3.us-east-2.amazonaws.com',
+      'culixo-profile-images.s3.us-east-2.amazonaws.com',
       'localhost'
     ],
     formats: ['image/avif', 'image/webp']

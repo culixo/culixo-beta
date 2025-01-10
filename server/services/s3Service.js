@@ -1,3 +1,4 @@
+// server/services/s3Service.js
 const { 
     PutObjectCommand,
     DeleteObjectCommand,
@@ -88,7 +89,29 @@ const {
         console.error('Error moving object in S3:', error);
         throw error;
       }
+    },
+
+    uploadProfilePicture: async (file, userId) => {
+      try {
+        const fileExt = file.originalname.split('.').pop();
+        const fileName = `${userId}/avatar.${fileExt}`; // Simplified path since it's a dedicated bucket
+        
+        const params = {
+          Bucket: process.env.AWS_PROFILE_BUCKET_NAME,
+          Key: fileName,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        };
+    
+        const command = new PutObjectCommand(params);
+        await s3Client.send(command);
+    
+        return `https://${process.env.AWS_PROFILE_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+      } catch (error) {
+        console.error('Error uploading profile picture to S3:', error);
+        throw error;
+      }
     }
-  };
+};
   
   module.exports = s3Service;

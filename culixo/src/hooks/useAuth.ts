@@ -1,3 +1,4 @@
+// src/hooks/useAuth.ts
 import { create } from 'zustand';
 
 export interface User {
@@ -10,63 +11,113 @@ export interface User {
   created_at: string;
   updated_at: string;
   last_login: string | null;
+  avatar_url?: string;
+}
+
+interface PendingInteraction {
+  type: 'like' | 'save';
+  recipeId: string;
+  returnTo: string;
 }
 
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
   token: string | undefined;
+  showAuthModal: boolean;
+  pendingInteraction: PendingInteraction | null;
   setAuth: (user: User | null, token?: string) => void;
   getToken: () => string | undefined;
   logout: () => void;
+  updateUser: (userData: Partial<User>) => void;
+  setShowAuthModal: (show: boolean) => void;
+  setPendingInteraction: (interaction: PendingInteraction | null) => void;
 }
 
 export const useAuth = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   user: null,
   token: undefined,
+  showAuthModal: false,
+  pendingInteraction: null,
+  
   setAuth: (user, token) => {
     if (token) {
-        const expiryTime = 24 * 60 * 60; // 24 hours in seconds
-        
-        // Set token in cookie for middleware
-        document.cookie = `token=${token}; path=/; max-age=${expiryTime}`; 
-        
-        // Store token based on storage preference
-        if (localStorage.getItem('user')) {
-            localStorage.setItem('token', token);
-            localStorage.setItem('tokenExpiry', String(Date.now() + expiryTime * 1000));
-        } else {
-            sessionStorage.setItem('token', token);
-            sessionStorage.setItem('tokenExpiry', String(Date.now() + expiryTime * 1000));
-        }
+      const expiryTime = 24 * 60 * 60;
+      document.cookie = `token=${token}; path=/; max-age=${expiryTime}`;
+      
+      if (localStorage.getItem('user')) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('tokenExpiry', String(Date.now() + expiryTime * 1000));
+      } else {
+        sessionStorage.setItem('token', token);
+        sessionStorage.setItem('tokenExpiry', String(Date.now() + expiryTime * 1000));
+      }
     }
+    
+    if (user) {
+      const storage = localStorage.getItem('user') ? localStorage : sessionStorage;
+      storage.setItem('user', JSON.stringify(user));
+    }
+    
     set({ isAuthenticated: !!user, user, token });
   },
+
+  updateUser: (userData) => {
+    const currentUser = get().user;
+    if (!currentUser) return;
+
+    const updatedUser = {
+      ...currentUser,
+      ...userData,
+    };
+
+    const storage = localStorage.getItem('user') ? localStorage : sessionStorage;
+    storage.setItem('user', JSON.stringify(updatedUser));
+
+    set({ user: updatedUser });
+  },
+
   getToken: () => {
     const state = get();
     if (state.token) return state.token;
     
-    // Check token expiry
     const expiry = localStorage.getItem('tokenExpiry') || sessionStorage.getItem('tokenExpiry');
     if (expiry && Date.now() > Number(expiry)) {
-        get().logout();
-        return undefined;
+      get().logout();
+      return undefined;
     }
     
     return localStorage.getItem('token') || sessionStorage.getItem('token') || undefined;
   },
+
   logout: () => {
-    // Clear cookie
     document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
     
-    // Clear storage
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    localStorage.removeItem('tokenExpiry');
     sessionStorage.removeItem('user');
     sessionStorage.removeItem('token');
+    sessionStorage.removeItem('tokenExpiry');
     
-    set({ isAuthenticated: false, user: null, token: undefined });
+    set({ 
+      isAuthenticated: false, 
+      user: null, 
+      token: undefined,
+      pendingInteraction: null,
+      showAuthModal: false
+    });
+  },
+
+  setShowAuthModal: (show) => set({ showAuthModal: show }),
+  
+  setPendingInteraction: (interaction) => {
+    // Only set if different from current state
+    const currentInteraction = get().pendingInteraction
+    if (JSON.stringify(currentInteraction) !== JSON.stringify(interaction)) {
+      set({ pendingInteraction: interaction })
+    }
   },
 }));
 
@@ -104,18 +155,15 @@ export const api = {
 
     try {
       const response = await fetch(`${baseURL}${endpoint}`, config);
-      
       if (response.status === 401) {
         useAuth.getState().logout();
         throw new Error('Session expired');
       }
-
       const data = await response.json();
       
       if (!response.ok) {
         throw new Error(data.error || 'Request failed');
       }
-
       return data;
     } catch (error) {
       console.error('API request failed:', error);

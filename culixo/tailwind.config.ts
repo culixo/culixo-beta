@@ -56,7 +56,11 @@ const config: Config = {
           '3': 'hsl(var(--chart-3))',
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))'
-        }
+        },
+        // New semantic colors
+        'background-elevated': 'hsl(var(--background-elevated))',
+        'background-inset': 'hsl(var(--background-inset))',
+        'border-primary': 'hsl(var(--border-primary))'
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -1,3 +1,4 @@
+// server/server.js
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -6,6 +7,7 @@ const authRoutes = require('./routes/authRoutes');
 const recipeRoutes = require('./routes/recipeRoutes');
 const recipeDraftRoutes = require('./routes/recipeDraftRoutes');
 const nutritionRoutes = require('./routes/nutritionRoutes');
+const userRoutes = require('./routes/userRoutes');     // Add this line
 
 const app = express();
 
@@ -20,12 +22,7 @@ const allowedOrigins = [
 // Middleware for detailed logging (only in development)
 if (isDevelopment) {
     app.use((req, res, next) => {
-        console.log('Incoming request:', {
-            method: req.method,
-            path: req.path,
-            url: req.url,
-            headers: req.headers
-        });
+        console.log(`${req.method} ${req.path}`);
         next();
     });
 }
@@ -52,6 +49,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/drafts', recipeDraftRoutes);
 app.use('/api/nutrition', nutritionRoutes);
+app.use('/api/users', userRoutes);         // Add this line
 
 // Catch unmatched routes
 app.use((req, res) => {

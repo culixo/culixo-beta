@@ -1,4 +1,4 @@
-// components/auth/LoginForm.tsx
+// src/components/auth/LoginForm.tsx
 "use client";
 
 import React from 'react';
@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useSearchParams } from 'next/navigation';
 import { authApi } from '@/lib/api/auth';
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 
 interface ApiError {
   response?: {
@@ -52,6 +53,7 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState('');
   const [rememberMe, setRememberMe] = React.useState(false);
+  const { handleAuthSuccess } = useAuthRedirect();
 
   const [formData, setFormData] = React.useState({
     email: '',
@@ -87,9 +89,22 @@ export function LoginForm() {
       }
   
       setAuth(user, token);
+
+      // Handle pending interactions if any
+      const action = searchParams.get('action');
+      const recipeId = searchParams.get('recipeId');
+      const returnTo = searchParams.get('returnTo');
   
-      const from = searchParams.get("from");
-      router.push(from || "/");
+      if (action && recipeId) {
+        await handleAuthSuccess({
+          type: action,
+          recipeId,
+          returnTo: returnTo || '/explore-recipes'
+        });
+      } else {
+        const from = searchParams.get("from");
+        router.push(from || "/");
+      }
     } catch (error: unknown) {
       const apiError = error as ApiError;
       console.error('Login error:', error);
@@ -100,19 +115,16 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-[420px] space-y-8">
+    <div className="w-full max-w-[420px] space-y-2">
       {/* Logo Section */}
       <Link href="/" className="flex items-center justify-center gap-3 group">
         <Image
-          src="/images/icon/Icon.png"
+          src="/images/culixo-logo.png"
           alt="Culixo Icon"
-          width={40}
-          height={40}
+          width={190}
+          height={190}
           className="transition-transform duration-200 group-hover:scale-105"
         />
-        <span className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-          Culixo
-        </span>
       </Link>
 
       {/* Main Form */}

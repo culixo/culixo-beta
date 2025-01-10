@@ -7,6 +7,8 @@ import { ThemeProvider } from "@/components/theme"
 import { Providers } from "@/components/providers/providers"
 import { Toaster } from "@/components/ui/toaster"
 import { Navbar } from "@/components/layout/navbar"
+import CSSBackground from "@/components/backgrounds/CSSBackground"
+import { AuthSuccessHandler } from '@/components/auth/AuthSuccessHandler'
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -55,10 +57,12 @@ export default function RootLayout({
         >
           <Providers>
             <div className="relative min-h-screen flex flex-col">
+              <CSSBackground />
               <Navbar />
               <main className="flex-1">
                 {children}
               </main>
+              <AuthSuccessHandler />
               <Toaster />
             </div>
           </Providers>

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -32,6 +32,7 @@ export function NavbarContent() {
   const { isAuthenticated, user, logout } = useAuth();
   const [showMoreMenu, setShowMoreMenu] = React.useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const [avatarKey, setAvatarKey] = useState(Date.now());
 
   React.useEffect(() => {
     setMounted(true);
@@ -54,6 +55,12 @@ export function NavbarContent() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (user?.avatar_url) {
+      setAvatarKey(Date.now());
+    }
+  }, [user?.avatar_url]);
 
   const handlePostRecipeClick = async () => {
     if (!isAuthenticated) {
@@ -109,7 +116,7 @@ export function NavbarContent() {
             "mx-auto h-16 border-b",
             "backdrop-blur-lg",
             theme === "dark"
-              ? "bg-black/10 border-white/10"
+              ? "bg-black/50 border-white/15"
               : "bg-white/50 border-zinc-200"
           )}
         >
@@ -128,8 +135,8 @@ export function NavbarContent() {
                     <Image
                       src="/images/culixo-logo.png"
                       alt="Culixo Logo"
-                      width={100}
-                      height={100}
+                      width={130}
+                      height={130}
                       className="transition-transform"
                       style={{ transform: "scale(1.05)" }}
                     />
@@ -286,12 +293,29 @@ export function NavbarContent() {
                     <div className="relative" ref={userMenuRef}>
                       <button
                         onClick={() => setShowUserMenu(!showUserMenu)}
-                        className={cn(
-                          "flex items-center justify-center rounded-full w-10 h-10",
-                          "bg-gradient-to-br from-purple-600 to-blue-500 text-white font-medium"
-                        )}
+                        className="flex items-center justify-center rounded-full w-10 h-10 overflow-hidden"
                       >
-                        {getInitial(user?.full_name)}
+                        {user?.avatar_url ? (
+                          <Image
+                            key={avatarKey}
+                            src={`${user.avatar_url}${
+                              user.avatar_url.includes("?") ? "&" : "?"
+                            }t=${Date.now()}`}
+                            alt="Profile"
+                            width={40}
+                            height={40}
+                            className="object-cover w-full h-full"
+                            priority
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = "/placeholder-chef.jpg";
+                            }}
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-purple-600 to-blue-500 text-white font-medium">
+                            {getInitial(user?.full_name)}
+                          </div>
+                        )}
                       </button>
 
                       {showUserMenu && (
@@ -320,7 +344,7 @@ export function NavbarContent() {
                             </Link>
 
                             <Link
-                              href="/my-recipes"
+                              href={`/profile/${user?.id}`}
                               className={cn(
                                 "flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
                                 theme === "dark"
@@ -329,7 +353,7 @@ export function NavbarContent() {
                               )}
                             >
                               <ChefHat className="h-4 w-4" />
-                              <span>My Recipes</span>
+                              <span>Your Profile</span>
                             </Link>
 
                             <Link

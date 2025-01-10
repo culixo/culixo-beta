@@ -3,6 +3,7 @@ const pool = require('../config/db');
 const { hashPassword } = require('../utils/passwordUtils');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const UserModel = require('../models/users');
 
 const signup = async (req, res) => {
     try {
@@ -12,46 +13,41 @@ const signup = async (req, res) => {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
-        // Check if user already exists
-        const userExists = await pool.query(
-            'SELECT * FROM users WHERE email = $1',
-            [email]
-        ).catch(err => {
-            console.error('Database query error (check user):', err);
-            throw new Error('Database error checking existing user');
-        });
-
-        if (userExists.rows.length > 0) {
-            return res.status(400).json({ error: 'Email already registered' });
-        }
-
         // Hash password
         const hashedPassword = await hashPassword(password);
 
-        // Insert new user
-        const newUser = await pool.query(
-            'INSERT INTO users (full_name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, full_name, email',
-            [fullName, email, hashedPassword]
-        ).catch(err => {
-            console.error('Database query error (insert user):', err);
-            throw new Error('Database error creating user');
+        // Create new user using UserModel
+        const newUser = await UserModel.createUser({
+            fullName,
+            email,
+            passwordHash: hashedPassword
         });
 
         // Generate JWT token
         const token = jwt.sign(
-            { userId: newUser.rows[0].id },
+            { userId: newUser.id },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
 
         res.status(201).json({
+            success: true,
             message: 'User created successfully',
-            user: newUser.rows[0],
+            user: newUser,
             token
         });
     } catch (error) {
         console.error('Signup error details:', error);
-        res.status(500).json({ error: 'Error creating user', details: error.message });
+        
+        if (error.message === 'Email already registered' || 
+            error.message === 'Username already taken') {
+            return res.status(400).json({ error: error.message });
+        }
+
+        res.status(500).json({ 
+            error: 'Error creating user', 
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+        });
     }
 };
 

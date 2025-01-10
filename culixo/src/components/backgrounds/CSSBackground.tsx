@@ -22,10 +22,10 @@ const CSSBackground = () => {
         {/* Enhanced grid with perspective effect - Only in dark mode */}
         {theme === 'dark' && (
           <div 
-            className="absolute w-full h-[200%] opacity-30 transition-all duration-300"
+            className="absolute w-full h-[200%] opacity-40 transition-all duration-300"
             style={{
               transform: 'perspective(1000px) rotateX(60deg) translateY(-50%) translateZ(0)',
-              backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px)',
+              backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 2px), linear-gradient(rgba(255,255,255,0.1) 1px, transparent 2px)',
               backgroundSize: '40px 40px',
             }}
           />
@@ -34,7 +34,7 @@ const CSSBackground = () => {
         {/* Ambient light effects - Only in dark mode */}
         {theme === 'dark' && (
           <>
-            <div className="absolute -top-20 left-1/4 w-[600px] h-[600px] rounded-full blur-3xl bg-primary/20 opacity-40" />
+            <div className="absolute -top-25 left-1/4 w-[600px] h-[600px] rounded-full blur-3xl bg-primary/20 opacity-40" />
             <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full blur-3xl bg-blue-500/20 opacity-40" />
           </>
         )}
