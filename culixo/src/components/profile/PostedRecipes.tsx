@@ -1,11 +1,11 @@
+// src/components/profile/PostedRecipes.tsx
 "use client";
 
 import { useEffect, useState, useRef } from "react";
 import { type Recipe } from "@/lib/api/recipes";
 import { recipeService } from "@/services/recipeService";
 import { RecipeGrid } from "./RecipeGrid";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PostedRecipesProps {
   userId: string;
@@ -16,22 +16,30 @@ export function PostedRecipes({ userId }: PostedRecipesProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const loadingRef = useRef(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!userId || loadingRef.current) return;
 
     async function fetchRecipes() {
       if (loadingRef.current) return;
-
       loadingRef.current = true;
       setIsLoading(true);
 
       try {
-        console.log("Fetching recipes for userId:", userId);
-        const userRecipes = await recipeService.getUserRecipes(userId);
-        console.log("Received recipes:", userRecipes);
+        console.log('PostedRecipes - Current userId:', userId);
+        console.log('PostedRecipes - Logged in user id:', user?.id);
+
+        // Check if viewing own profile
+        const isOwnProfile = user?.id?.toString() === userId.toString();
+        console.log('PostedRecipes - Is own profile?', isOwnProfile);
+
+        const userRecipes = isOwnProfile 
+        ? await recipeService.getMyRecipes()
+        : await recipeService.getPublicUserRecipes(userId);
 
         if (Array.isArray(userRecipes)) {
+          console.log('PostedRecipes - Setting recipes state:', userRecipes);
           setRecipes(userRecipes);
         } else {
           console.error("Expected array of recipes but got:", userRecipes);
@@ -48,10 +56,9 @@ export function PostedRecipes({ userId }: PostedRecipesProps) {
     }
 
     fetchRecipes();
-  }, [userId]);
+  }, [userId, user?.id]);
 
   const handleInteraction = async (recipeId: string, type: 'like' | 'save', newCount: number) => {
-    // Update the recipes state with new counts
     setRecipes(prevRecipes => 
       prevRecipes.map(recipe => 
         recipe.id === recipeId
@@ -66,42 +73,6 @@ export function PostedRecipes({ userId }: PostedRecipesProps) {
       )
     );
   };
-
-  const handleRetry = async () => {
-    // Prevent retry if already loading
-    if (loadingRef.current) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const userRecipes = await recipeService.getUserRecipes(userId);
-      setRecipes(userRecipes);
-    } catch (err) {
-      console.error("Error reloading recipes:", err);
-      setError("Failed to load recipes. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (error) {
-    return (
-      <Alert variant="destructive" className="mt-4">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          {error}{" "}
-          <button
-            onClick={handleRetry}
-            className="underline hover:no-underline ml-2"
-            disabled={isLoading}
-          >
-            Try again
-          </button>
-        </AlertDescription>
-      </Alert>
-    );
-  }
 
   return (
     <RecipeGrid

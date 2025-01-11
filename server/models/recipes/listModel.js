@@ -2,33 +2,6 @@
 const db = require('../../config/db');
 
 const ListModel = {
-    getUserRecipesByUserId: async (userId, currentUserId = null) => {
-      try {
-        const query = `
-          SELECT 
-            r.*,
-            u.full_name as author_name,
-            u.avatar_url as author_avatar,
-            COALESCE((SELECT COUNT(*) FROM recipe_likes WHERE recipe_id = r.id), 0) as likes_count,
-            COALESCE((SELECT COUNT(*) FROM recipe_saves WHERE recipe_id = r.id), 0) as saves_count,
-            ${currentUserId ? `
-              EXISTS(SELECT 1 FROM recipe_likes WHERE recipe_id = r.id AND user_id = $2) as has_liked,
-              EXISTS(SELECT 1 FROM recipe_saves WHERE recipe_id = r.id AND user_id = $2) as has_saved
-            ` : 'false as has_liked, false as has_saved'}
-          FROM recipes r
-          LEFT JOIN users u ON r.user_id = u.id
-          WHERE r.user_id = $1
-          ORDER BY r.created_at DESC
-        `;
-      
-        const result = await db.query(query, currentUserId ? [userId, currentUserId] : [userId]);
-        return result.rows;
-      } catch (error) {
-        console.error('Error in getUserRecipesByUserId:', error);
-        throw error;
-      }
-    },
-
     getAllRecipes: async ({ page = 1, limit = 12, sortBy = 'Newest First', userId = null }) => {
         try {
           const offset = (page - 1) * limit;

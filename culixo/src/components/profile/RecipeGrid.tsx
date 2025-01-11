@@ -1,10 +1,11 @@
+// src/components/profile/RecipeGrid.tsx
 "use client";
 
 import { type Recipe } from "@/lib/api/recipes";
 import { RecipeCard } from "../shared/RecipeCard";
 import { ChefHat } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useState } from 'react';
+import { useCallback } from 'react';
 
 interface RecipeGridProps {
   recipes: Recipe[];
@@ -17,7 +18,7 @@ interface RecipeGridProps {
 }
 
 export function RecipeGrid({ 
-  recipes: initialRecipes, 
+  recipes, // Using prop directly
   isLoading, 
   emptyStateMessage = "No recipes found", 
   showAuthor = false,
@@ -25,29 +26,18 @@ export function RecipeGrid({
   onRecipeRemoved,
   onInteraction
 }: RecipeGridProps) {
-  const [recipes, setRecipes] = useState(initialRecipes);
 
   // Handle recipe interactions
-  const handleInteraction = (recipeId: string, type: 'like' | 'save', newCount: number) => {
+  const handleInteraction = useCallback((recipeId: string, type: 'like' | 'save', newCount: number) => {
     if (isSavedPage && type === 'save' && newCount === 0) {
-      // If we're on the saved page and a recipe was unsaved
       onRecipeRemoved?.(recipeId);
     }
 
-    setRecipes(prevRecipes => 
-      prevRecipes.map(recipe => 
-        recipe.id === recipeId
-          ? {
-              ...recipe,
-              likes_count: type === 'like' ? newCount : recipe.likes_count,
-              saves_count: type === 'save' ? newCount : recipe.saves_count,
-              has_liked: type === 'like' ? newCount > recipe.likes_count : recipe.has_liked,
-              has_saved: type === 'save' ? newCount > recipe.saves_count : recipe.has_saved
-            }
-          : recipe
-      )
-    );
-  };
+    // Pass the interaction up to parent
+    if (onInteraction) {
+      onInteraction(recipeId, type, newCount);
+    }
+  }, [isSavedPage, onRecipeRemoved, onInteraction]);
 
   if (isLoading) {
     return (
@@ -87,15 +77,11 @@ export function RecipeGrid({
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {recipes.map((recipe) => (
         <RecipeCard 
-        key={recipe.id} 
-        recipe={recipe} 
-        showAuthor={showAuthor}
-        isSavedPage={isSavedPage}
-        onInteraction={(type, count) => {
-            if (onInteraction) {
-              onInteraction(recipe.id, type, count);
-            }
-          }}
+          key={recipe.id} 
+          recipe={recipe} 
+          showAuthor={showAuthor}
+          isSavedPage={isSavedPage}
+          onInteraction={(type, count) => handleInteraction(recipe.id, type, count)}
         />
       ))}
     </div>

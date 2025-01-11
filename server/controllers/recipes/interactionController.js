@@ -136,78 +136,25 @@ const InteractionController = {
     },
 
     getSavedRecipes: async (req, res) => {
-        try {
+      try {
           const page = parseInt(req.query.page) || 1;
           const userId = req.user.id;
-          const limit = 12;
-          const offset = (page - 1) * limit;
-      
-          // Get total count for pagination
-          const countResult = await pool.query(
-            `SELECT COUNT(*) FROM recipe_saves WHERE user_id = $1`,
-            [userId]
-          );
-          const totalRecipes = parseInt(countResult.rows[0].count);
-      
-          // Main query
-          const query = `
-            SELECT 
-              r.*,
-              u.full_name as author_name,
-              u.avatar_url as author_avatar,
-              COALESCE((SELECT COUNT(*) FROM recipe_likes WHERE recipe_id = r.id), 0) as likes_count,
-              COALESCE((SELECT COUNT(*) FROM recipe_saves WHERE recipe_id = r.id), 0) as saves_count
-            FROM recipe_saves rs
-            INNER JOIN recipes r ON rs.recipe_id = r.id
-            LEFT JOIN users u ON r.user_id = u.id
-            WHERE rs.user_id = $1
-            ORDER BY rs.created_at DESC
-            LIMIT $2 OFFSET $3`;
           
-          const result = await pool.query(query, [userId, limit, offset]);
+          // Use the model's implementation which has the correct query
+          const result = await RecipeModel.getSavedRecipes(userId, { page });
           
-          // Format the response
-          const recipes = result.rows.map(recipe => ({
-            id: recipe.id,
-            title: recipe.title,
-            description: recipe.description,
-            difficulty_level: recipe.difficulty_level,
-            prep_time: recipe.prep_time,
-            cook_time: recipe.cook_time,
-            likes_count: parseInt(recipe.likes_count || 0),
-            saves_count: parseInt(recipe.saves_count || 0),
-            media: recipe.media,
-            author: {
-              id: recipe.user_id,
-              full_name: recipe.author_name,
-              avatar_url: recipe.author_avatar
-            },
-            created_at: recipe.created_at,
-            has_liked: recipe.has_liked || false,
-            has_saved: true,
-          }));
-      
           res.json({
-            success: true,
-            data: {
-              recipes,
-              pagination: {
-                currentPage: page,
-                totalPages: Math.ceil(totalRecipes / limit),
-                totalRecipes,
-                hasNextPage: page < Math.ceil(totalRecipes / limit),
-                hasPreviousPage: page > 1
-              }
-            }
+              success: true,
+              data: result  // The model already returns { recipes, pagination }
           });
-        } catch (error) {
+      } catch (error) {
           console.error('Error fetching saved recipes:', error);
           res.status(500).json({
-            success: false,
-            message: 'Error fetching saved recipes',
-            error: error.message
+              success: false,
+              message: 'Error fetching saved recipes',
+              error: error.message
           });
-        }
+      }
     },
 };
 

@@ -7,6 +7,8 @@ interface ProfilePageProps {
   }
 }
 
-export default function ProfilePage({ params }: ProfilePageProps) {
-  return <PostedRecipes userId={params.id} />;
+export default async function ProfilePage({ params }: ProfilePageProps) {
+  // Make the component async and await the params
+  const { id } = await params;
+  return <PostedRecipes userId={id} />;
 }

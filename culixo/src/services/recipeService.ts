@@ -32,55 +32,68 @@ export const recipeService = {
 //     }
 //   },
 
-    getUserRecipes: async (userId: string): Promise<Recipe[]> => {
-        try {
-            const response = await recipeApi.getUserRecipes(userId)
-            
-            if (!response.success || !response.data) {
-                return []
-            }
-            
-            return response.data
-        } catch (error) {
-            console.error('Error in getUserRecipes:', error)
-            return []
-        }
-    },
-
-    getAllRecipes: async (
-      page: number = 1,
-      sortBy: string = 'Newest First'
-  ): Promise<{ 
-      recipes: Recipe[]
-      pagination: PaginationData 
-  }> => {
-      try {
-          const response = await recipeApi.fetchAllRecipes(page, sortBy);
-          console.log('Service response:', response);
-  
-          if (!response.success || !response.data) {
-              return {
-                  recipes: [],
-                  pagination: { ...DEFAULT_PAGINATION, currentPage: page }
-              };
-          }
-  
-          return {
-              recipes: response.data.recipes.map(recipe => ({
-                  ...recipe,
-                  has_liked: !!recipe.has_liked,
-                  has_saved: !!recipe.has_saved
-              })),
-              pagination: response.data.pagination
-          };
-      } catch (error) {
-          console.error('Error in getAllRecipes:', error);
-          return {
-              recipes: [],
-              pagination: { ...DEFAULT_PAGINATION, currentPage: page }
-          };
+  getMyRecipes: async (): Promise<Recipe[]> => {
+    try {
+      console.log('recipeService - Calling getMyRecipes');
+      const response = await recipeApi.getMyRecipes();
+      console.log('recipeService - Response received:', response);
+      if (!response.success || !response.data) {
+        return [];
       }
-    },
+      return response.data;
+    } catch (error) {
+      console.error('Error in getMyRecipes:', error);
+      return [];
+    }
+  },
+
+  getPublicUserRecipes: async (userId: string): Promise<Recipe[]> => {
+    try {
+      const response = await recipeApi.getPublicUserRecipes(userId);
+      if (!response.success || !response.data) {
+        return [];
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Error in getPublicUserRecipes:', error);
+      return [];
+    }
+  },
+
+  getAllRecipes: async (
+    page: number = 1,
+    sortBy: string = 'Newest First'
+): Promise<{ 
+    recipes: Recipe[]
+    pagination: PaginationData 
+}> => {
+    try {
+        const response = await recipeApi.fetchAllRecipes(page, sortBy);
+        console.log('Service response:', response);
+
+        if (!response.success || !response.data) {
+            return {
+                recipes: [],
+                pagination: { ...DEFAULT_PAGINATION, currentPage: page }
+            };
+        }
+
+        return {
+            recipes: response.data.recipes.map(recipe => ({
+                ...recipe,
+                has_liked: !!recipe.has_liked,
+                has_saved: !!recipe.has_saved
+            })),
+            pagination: response.data.pagination
+        };
+    } catch (error) {
+        console.error('Error in getAllRecipes:', error);
+        return {
+            recipes: [],
+            pagination: { ...DEFAULT_PAGINATION, currentPage: page }
+        };
+    }
+  },
 
 //   searchRecipes: async (
 //     query: string,

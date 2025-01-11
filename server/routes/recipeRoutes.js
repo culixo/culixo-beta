@@ -47,8 +47,8 @@ router.use(authMiddleware);
 router.get('/saved', RecipeController.getSavedRecipes);
 
 // User Recipe Management
-router.get('/my-recipes', RecipeController.getUserRecipes);
-router.get('/user/:userId/recipes', RecipeController.getUserRecipesByUserId);
+router.get('/my-recipes', RecipeController.getMyRecipes);
+router.get('/user/:userId/recipes', RecipeController.getPublicUserRecipes);
 router.post('/', RecipeController.createRecipe);
 router.put('/:id', RecipeController.updateRecipe);
 

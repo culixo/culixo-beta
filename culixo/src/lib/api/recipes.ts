@@ -1,3 +1,4 @@
+// src/lib/api/recipes.ts
 import { FilterType } from '@/contexts/FilterContext'
 import api from '../axios'
 import { ApiResponse } from './user'
@@ -57,23 +58,30 @@ const DEFAULT_PAGINATION: PaginationData = {
 
 // API Methods
 export const recipeApi = {
-  getUserRecipes: async (userId: string): Promise<ApiResponse<Recipe[]>> => {
+  getMyRecipes: async (): Promise<ApiResponse<Recipe[]>> => {
     try {
-      const endpoint = userId === 'my-recipes' 
-        ? '/recipes/my-recipes'
-        : `/recipes/user/${userId}/recipes`
-
-      const response = await api.get(endpoint)
-      const data = response.data?.success !== undefined 
-        ? response.data.data 
-        : response.data
-
+      console.log('recipeApi - Calling getMyRecipes');
+      const response = await api.get('/recipes/my-recipes');
+      console.log('recipeApi - Response received:', response);
       return {
         success: true,
-        data: data || []
+        data: response.data || []
       }
     } catch (error) {
-      console.error('Error fetching user recipes:', error)
+      console.error('Error fetching my recipes:', error);
+      return { success: false, data: [] }
+    }
+  },
+
+  getPublicUserRecipes: async (userId: string): Promise<ApiResponse<Recipe[]>> => {
+    try {
+      const response = await api.get(`/recipes/user/${userId}/recipes`);
+      return {
+        success: true,
+        data: response.data || []
+      }
+    } catch (error) {
+      console.error('Error fetching user recipes:', error);
       return { success: false, data: [] }
     }
   },
@@ -105,7 +113,7 @@ export const recipeApi = {
             }
         };
     }
-},
+  },
 
   searchRecipes: async (
     query: string,

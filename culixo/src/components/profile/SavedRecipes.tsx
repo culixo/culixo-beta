@@ -1,7 +1,7 @@
 // src/components/profile/SavedRecipes.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { RecipeGrid } from "./RecipeGrid";
 import { recipeService } from "@/services/recipeService";
 import type { Recipe } from "@/lib/api/recipes";
@@ -28,11 +28,7 @@ export function SavedRecipes() {
     hasPreviousPage: false
   });
 
-  useEffect(() => {
-    fetchSavedRecipes();
-  }, [currentPage]);
-
-  const fetchSavedRecipes = async () => {
+  const fetchSavedRecipes = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -52,35 +48,65 @@ export function SavedRecipes() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage]);
 
-  const handleRecipeRemoved = (recipeId: string) => {
-    // Remove recipe from the list when unsaved
+  useEffect(() => {
+    fetchSavedRecipes();
+  }, [fetchSavedRecipes]);
+
+  // Interaction handler
+  const handleInteraction = useCallback((recipeId: string, type: 'like' | 'save', newCount: number) => {
+    setRecipes(prevRecipes => 
+      prevRecipes.map(recipe => {
+        if (recipe.id === recipeId) {
+          return {
+            ...recipe,
+            likes_count: type === 'like' ? newCount : recipe.likes_count,
+            saves_count: type === 'save' ? newCount : recipe.saves_count,
+            has_liked: type === 'like' ? !recipe.has_liked : recipe.has_liked,
+            has_saved: type === 'save' ? !recipe.has_saved : recipe.has_saved
+          };
+        }
+        return recipe;
+      })
+    );
+
+    // If unsaving a recipe, handle removal
+    if (type === 'save' && newCount === 0) {
+      handleRecipeRemoved(recipeId);
+      // Update pagination
+      setPagination(prev => ({
+        ...prev,
+        totalRecipes: Math.max(0, prev.totalRecipes - 1)
+      }));
+    }
+  }, []);
+
+  const handleRecipeRemoved = useCallback((recipeId: string) => {
     setRecipes(prev => prev.filter(recipe => recipe.id !== recipeId));
-    // Update total count
     setPagination(prev => ({
       ...prev,
-      totalRecipes: prev.totalRecipes - 1
+      totalRecipes: Math.max(0, prev.totalRecipes - 1)
     }));
 
-    // If this was the last recipe on the page, go to previous page
+    // If this was the last recipe on the page and not the first page, go to previous page
     if (recipes.length === 1 && currentPage > 1) {
       setCurrentPage(prev => prev - 1);
     }
-  };
+  }, [recipes.length, currentPage]);
 
   // Add pagination handlers
-  const handleNextPage = () => {
+  const handleNextPage = useCallback(() => {
     if (pagination.hasNextPage) {
       setCurrentPage(prev => prev + 1);
     }
-  };
+  }, [pagination.hasNextPage]);
 
-  const handlePrevPage = () => {
+  const handlePrevPage = useCallback(() => {
     if (pagination.hasPreviousPage) {
       setCurrentPage(prev => prev - 1);
     }
-  };
+  }, [pagination.hasPreviousPage]);
 
   if (error) {
     return (
@@ -114,6 +140,7 @@ export function SavedRecipes() {
         showAuthor={true}
         isSavedPage={true}
         onRecipeRemoved={handleRecipeRemoved}
+        onInteraction={handleInteraction}
       />
 
       {/* Pagination Controls */}

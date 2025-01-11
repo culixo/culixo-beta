@@ -144,42 +144,46 @@ const BaseController = {
         }
     },
 
-    getUserRecipes: async (req, res) => {
-        try {
-          const recipes = await RecipeModel.getByUserId(req.user.id);
+    getMyRecipes: async (req, res) => {
+      try {
+          // Pass the user's own ID as both userId and currentUserId
+          const recipes = await RecipeModel.getMyRecipes(req.user.id, req.user.id);
+          
           res.json({
-            success: true,
-            data: recipes
+              success: true,
+              data: recipes
           });
-        } catch (error) {
+      } catch (error) {
           console.error('Error fetching user recipes:', error);
           res.status(500).json({
-            success: false,
-            message: 'Error fetching user recipes',
-            error: error.message
+              success: false,
+              message: 'Error fetching user recipes',
+              error: error.message
           });
-        }
+      }
     },
 
-    getUserRecipesByUserId: async (req, res) => {
-        try {
+    getPublicUserRecipes: async (req, res) => {
+      try {
           const { userId } = req.params;
+          // Pass the current user's ID if they're logged in
+          const currentUserId = req.user?.id || null;
           
-          const recipes = await RecipeModel.getUserRecipesByUserId(userId);
+          const recipes = await RecipeModel.getPublicUserRecipes(userId, currentUserId);
           
           res.json({
-            success: true,
-            data: recipes,
-            message: recipes.length ? 'Recipes fetched successfully' : 'No recipes found'
+              success: true,
+              data: recipes,
+              message: recipes.length ? 'Recipes fetched successfully' : 'No recipes found'
           });
-        } catch (error) {
-          console.error('Error in controller:', error);
+      } catch (error) {
+          console.error('Error in getPublicUserRecipes:', error);
           res.status(500).json({
-            success: false,
-            message: 'Error fetching user recipes',
-            error: error.message
+              success: false,
+              message: 'Error fetching user recipes',
+              error: error.message
           });
-        }
+      }
     },
 
     updateRecipe: async (req, res) => {

@@ -1,3 +1,4 @@
+// src/components/shared/RecipeCard.tsx
 "use client";
 import { Card } from "@/components/ui/card";
 import { type Recipe } from "@/lib/api/recipes";
@@ -49,10 +50,10 @@ const getDifficultyStyles = (difficulty: string) => {
 
 export function RecipeCard({ recipe, showAuthor = false, onInteraction, isSavedPage = false }: RecipeCardProps) {
   // Initialize states with the values from recipe prop
-  const [isLiked, setIsLiked] = useState(recipe.has_liked);
+  const [isLiked, setIsLiked] = useState(recipe.has_liked === true);
   const [isSaved, setIsSaved] = useState(isSavedPage || recipe.has_saved);
-  const [likesCount, setLikesCount] = useState(recipe.likes_count);
-  const [savesCount, setSavesCount] = useState(recipe.saves_count);
+  const [likesCount, setLikesCount] = useState(Number(recipe.likes_count) || 0);
+  const [savesCount, setSavesCount] = useState(Number(recipe.saves_count) || 0);
   const [isLoading, setIsLoading] = useState(false);
   const pathname = usePathname();
   const { isAuthenticated, setShowAuthModal, setPendingInteraction } = useAuth(); 
@@ -71,17 +72,28 @@ export function RecipeCard({ recipe, showAuthor = false, onInteraction, isSavedP
     (recipe.difficulty_level || "Easy").charAt(0).toUpperCase() +
     (recipe.difficulty_level || "Easy").slice(1).toLowerCase();
 
+    console.log('Recipe Card Render:', {
+      recipeId: recipe.id,
+      has_liked: recipe.has_liked,
+      has_saved: recipe.has_saved,
+      isLiked,
+      isSaved,
+      likesCount,
+      savesCount,
+      isSavedPage
+    });
+
     useEffect(() => {
       // Only update if these values actually changed
       if (recipe.has_liked !== isLiked) {
-          setIsLiked(!!recipe.has_liked);
+        setIsLiked(recipe.has_liked === true);
       }
       if (recipe.has_saved !== isSaved) {
-          setIsSaved(!!recipe.has_saved || isSavedPage);
+        setIsSaved(recipe.has_saved === true || isSavedPage);
       }
-      setLikesCount(recipe.likes_count);
-      setSavesCount(recipe.saves_count);
-  }, [recipe.id, recipe.has_liked, recipe.has_saved, recipe.likes_count, recipe.saves_count, isSavedPage]);
+      setLikesCount(Number(recipe.likes_count) || 0);
+      setSavesCount(Number(recipe.saves_count) || 0);
+  }, [recipe.id, recipe.has_liked, recipe.has_saved, recipe.likes_count, recipe.saves_count, isSavedPage, isLiked, isSaved]);
 
   // Handle like interaction
   const handleLike = async () => {
@@ -98,23 +110,26 @@ export function RecipeCard({ recipe, showAuthor = false, onInteraction, isSavedP
     }
     
     setIsLoading(true);
+    const newIsLiked = !isLiked;
+    const newCount = newIsLiked ? likesCount + 1 : likesCount - 1;
+    
+    // Optimistic update
+    setIsLiked(newIsLiked);
+    setLikesCount(newCount);
+    onInteraction?.('like', newCount);
+    
     try {
-      if (!isLiked) {
+      if (newIsLiked) {
         await recipeService.likeRecipe(recipe.id);
-        setIsLiked(true);
-        setLikesCount(prev => prev + 1);
       } else {
         await recipeService.unlikeRecipe(recipe.id);
-        setIsLiked(false);
-        setLikesCount(prev => prev - 1);
       }
-      onInteraction?.('like', !isLiked ? likesCount + 1 : likesCount - 1);
     } catch (error: any) {
-      if (error.message === 'Recipe already liked') {
-        setIsLiked(true);
-      } else {
-        console.error('Error toggling like:', error);
-      }
+      // Revert on error
+      setIsLiked(!newIsLiked);
+      setLikesCount(newIsLiked ? newCount - 1 : newCount + 1);
+      onInteraction?.('like', newIsLiked ? newCount - 1 : newCount + 1);
+      console.error('Error toggling like:', error);
     } finally {
       setIsLoading(false);
     }
@@ -140,12 +155,13 @@ export function RecipeCard({ recipe, showAuthor = false, onInteraction, isSavedP
             await recipeService.saveRecipe(recipe.id);
             setIsSaved(true);
             setSavesCount(prev => prev + 1);
+            onInteraction?.('save', savesCount + 1);
         } else {
             await recipeService.unsaveRecipe(recipe.id);
             setIsSaved(false);
             setSavesCount(prev => prev - 1);
+            onInteraction?.('save', savesCount - 1);
         }
-        onInteraction?.('save', !isSaved ? savesCount + 1 : savesCount - 1);
     } catch (error: any) {
         // Reset to previous state on error
         if (error.message === 'Recipe already saved') {
@@ -156,13 +172,21 @@ export function RecipeCard({ recipe, showAuthor = false, onInteraction, isSavedP
         } else {
             // Reset to previous state
             setIsSaved(!isSaved);
-            setSavesCount(isSaved ? savesCount - 1 : savesCount + 1);
+            // setSavesCount(isSaved ? savesCount - 1 : savesCount + 1);
+            setSavesCount(prev => isSaved ? prev - 1 : prev + 1);
             console.error('Error toggling save:', error);
         }
     } finally {
         setIsLoading(false);
     }
 };
+
+console.log('Recipe Card Render:', {
+  recipeId: recipe.id,
+  has_liked: recipe.has_liked,
+  isLiked,
+  likesCount
+});
 
   return (
     <Card className="bg-white dark:bg-[#0A0B14] border-gray-200 dark:border-[#1d1e30] rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-300">
@@ -218,7 +242,7 @@ export function RecipeCard({ recipe, showAuthor = false, onInteraction, isSavedP
                     : 'text-gray-600 dark:text-gray-400 group-hover/like:text-red-500 dark:group-hover/like:text-red-400'
                 }`}
               >
-                {likesCount}
+                {Number(likesCount) || 0}
               </span>
             </button>
 
@@ -245,7 +269,7 @@ export function RecipeCard({ recipe, showAuthor = false, onInteraction, isSavedP
                     : 'text-gray-600 dark:text-gray-400 group-hover/save:text-purple-500 dark:group-hover/save:text-purple-400'
                 }`}
               >
-                {savesCount}
+                {Number(savesCount) || 0}
               </span>
             </button>
           </div>
