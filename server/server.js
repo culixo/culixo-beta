@@ -7,7 +7,8 @@ const authRoutes = require('./routes/authRoutes');
 const recipeRoutes = require('./routes/recipeRoutes');
 const recipeDraftRoutes = require('./routes/recipeDraftRoutes');
 const nutritionRoutes = require('./routes/nutritionRoutes');
-const userRoutes = require('./routes/userRoutes');     // Add this line
+const userRoutes = require('./routes/userRoutes');  
+const collectionRoutes = require('./routes/collectionRoutes');
 
 const app = express();
 
@@ -49,7 +50,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/drafts', recipeDraftRoutes);
 app.use('/api/nutrition', nutritionRoutes);
-app.use('/api/users', userRoutes);         // Add this line
+app.use('/api/users', userRoutes);
+app.use('/api/collections', collectionRoutes);
 
 // Catch unmatched routes
 app.use((req, res) => {

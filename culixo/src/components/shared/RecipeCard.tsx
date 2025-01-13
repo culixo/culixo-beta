@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 interface RecipeCardProps {
   recipe: Recipe;
   showAuthor?: boolean;
+  hideInteractions?: boolean;
   onInteraction?: (type: 'like' | 'save', count: number) => void;
   isSavedPage?: boolean;
 }
@@ -48,7 +49,7 @@ const getDifficultyStyles = (difficulty: string) => {
   }
 };
 
-export function RecipeCard({ recipe, showAuthor = false, onInteraction, isSavedPage = false }: RecipeCardProps) {
+export function RecipeCard({ recipe, showAuthor = false, hideInteractions = false, onInteraction, isSavedPage = false }: RecipeCardProps) {
   // Initialize states with the values from recipe prop
   const [isLiked, setIsLiked] = useState(recipe.has_liked === true);
   const [isSaved, setIsSaved] = useState(isSavedPage || recipe.has_saved);
@@ -221,58 +222,59 @@ console.log('Recipe Card Render:', {
           >
             {capitalizedDifficulty}
           </span>
-
-          <div className="flex items-center gap-4">
-            <button
-              className="group/like flex items-center gap-1.5"
-              onClick={handleLike}
-              disabled={isLoading}
-            >
-              <Heart
-                className={`w-5 h-5 transition-colors duration-200 ${
-                  isLiked 
-                    ? 'text-red-500 dark:text-red-400 fill-current' 
-                    : 'text-gray-600 dark:text-gray-400 group-hover/like:text-red-500 dark:group-hover/like:text-red-400'
-                }`}
-              />
-              <span
-                className={`text-sm font-medium transition-colors duration-200 ${
-                  isLiked
-                    ? 'text-red-500 dark:text-red-400'
-                    : 'text-gray-600 dark:text-gray-400 group-hover/like:text-red-500 dark:group-hover/like:text-red-400'
-                }`}
+          {!hideInteractions && (
+            <div className="flex items-center gap-4">
+              <button
+                className="group/like flex items-center gap-1.5"
+                onClick={handleLike}
+                disabled={isLoading}
               >
-                {Number(likesCount) || 0}
-              </span>
-            </button>
+                <Heart
+                  className={`w-5 h-5 transition-colors duration-200 ${
+                    isLiked 
+                      ? 'text-red-500 dark:text-red-400 fill-current' 
+                      : 'text-gray-600 dark:text-gray-400 group-hover/like:text-red-500 dark:group-hover/like:text-red-400'
+                  }`}
+                />
+                <span
+                  className={`text-sm font-medium transition-colors duration-200 ${
+                    isLiked
+                      ? 'text-red-500 dark:text-red-400'
+                      : 'text-gray-600 dark:text-gray-400 group-hover/like:text-red-500 dark:group-hover/like:text-red-400'
+                  }`}
+                >
+                  {Number(likesCount) || 0}
+                </span>
+              </button>
 
-            <button
-              className="group/save flex items-center gap-1.5"
-              onClick={handleSave}
-              disabled={isLoading}
-            >
-              {isSaved ? (
-                <BookmarkCheck
-                  className="w-5 h-5 text-purple-500 dark:text-purple-400 fill-current"
-                />
-              ) : (
-                <BookmarkPlus
-                  className="w-5 h-5 text-gray-600 dark:text-gray-400 
-                    group-hover/save:text-purple-500 dark:group-hover/save:text-purple-400 
-                    transition-colors duration-200"
-                />
-              )}
-              <span
-                className={`text-sm font-medium transition-colors duration-200 ${
-                  isSaved
-                    ? 'text-purple-500 dark:text-purple-400'
-                    : 'text-gray-600 dark:text-gray-400 group-hover/save:text-purple-500 dark:group-hover/save:text-purple-400'
-                }`}
+              <button
+                className="group/save flex items-center gap-1.5"
+                onClick={handleSave}
+                disabled={isLoading}
               >
-                {Number(savesCount) || 0}
-              </span>
-            </button>
-          </div>
+                {isSaved ? (
+                  <BookmarkCheck
+                    className="w-5 h-5 text-purple-500 dark:text-purple-400 fill-current"
+                  />
+                ) : (
+                  <BookmarkPlus
+                    className="w-5 h-5 text-gray-600 dark:text-gray-400 
+                      group-hover/save:text-purple-500 dark:group-hover/save:text-purple-400 
+                      transition-colors duration-200"
+                  />
+                )}
+                <span
+                  className={`text-sm font-medium transition-colors duration-200 ${
+                    isSaved
+                      ? 'text-purple-500 dark:text-purple-400'
+                      : 'text-gray-600 dark:text-gray-400 group-hover/save:text-purple-500 dark:group-hover/save:text-purple-400'
+                  }`}
+                >
+                  {Number(savesCount) || 0}
+                </span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Recipe Title - Clickable with gradient underline effect */}
